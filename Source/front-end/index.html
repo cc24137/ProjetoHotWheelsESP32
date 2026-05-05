@@ -1,23 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hot Wheels ESP32</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hot Wheels ESP32</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
+  <div class="hw-wrap">
+    <div class="track-stripes"></div>
+
+    <div class="header">
+      <div class="logo-flame"></div>
+      <div class="header-text">
         <h1>Hot Wheels ESP32</h1>
-        <div class="controls">
-            <button id="startButton">Start</button>
-            <button id="stopButton">Stop</button>
-        </div>
-        <div class="status">
-            <p id="statusText">Status: Idle</p>
-        </div>
+        <span>Speed Tracker · Hall Sensor</span>
+      </div>
+      <div class="status-dot">
+        <div class="dot" id="connDot"></div>
+        <span id="connLabel">Offline</span>
+      </div>
     </div>
-    <script src="script.js"></script>
+
+    <div class="ticker-bar">
+      <span>Current: <span id="tickCurrent">— km/h</span></span>
+      <span>Peak: <span id="tickPeak">— km/h</span></span>
+      <span>Readings: <span id="tickLaps">0</span></span>
+      <span>Uptime: <span id="tickTime">00:00</span></span>
+    </div>
+
+    <div class="main-content">
+
+      <div class="speedometer-row">
+        <div class="speed-card primary">
+          <div class="card-label">Current Speed</div>
+          <div class="card-value orange" id="currentSpeed">—<span class="unit">km/h</span></div>
+        </div>
+        <div class="speed-card info">
+          <div class="card-label">Top Speed</div>
+          <div class="card-value blue" id="topSpeed">—<span class="unit">km/h</span></div>
+        </div>
+        <div class="speed-card danger">
+          <div class="card-label">Readings</div>
+          <div class="card-value" id="lapCount">0<span class="unit">total</span></div>
+        </div>
+      </div>
+
+      <div class="gauge-section">
+        <div class="gauge-wrap">
+          <svg width="120" height="80" viewBox="0 0 120 80">
+            <path d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" stroke-linecap="round"/>
+            <path id="gaugeFill" d="M10 65 A50 50 0 0 1 110 65" fill="none" stroke="#FF7F11" stroke-width="10" stroke-linecap="round" stroke-dasharray="157" stroke-dashoffset="157"/>
+            <text x="60" y="62" text-anchor="middle" font-family="'Bebas Neue', sans-serif" font-size="22" fill="white" id="gaugeText">0</text>
+            <text x="60" y="76" text-anchor="middle" font-family="'Barlow Condensed', sans-serif" font-size="9" fill="rgba(255,255,255,0.4)" letter-spacing="1">KM/H</text>
+          </svg>
+        </div>
+        <div class="gauge-info">
+          <h3>Speed Monitor</h3>
+          <p>Hall effect sensor reading from wheel rotation. Trigger the sensor to log speed data.</p>
+          <div class="controls-row">
+            <button class="btn btn-start" id="startButton">Start</button>
+            <button class="btn btn-buzzer" id="stopButton">Buzzer</button>
+            <button class="btn btn-clear" id="clearBtn">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <div class="history-header">
+          <h2>History</h2>
+          <span class="count-badge" id="countBadge">0 readings</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Time</th>
+              <th>Speed</th>
+              <th>Delta</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="5" class="empty-state">No readings yet — press Start</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
