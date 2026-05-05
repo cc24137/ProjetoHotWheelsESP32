@@ -1,5 +1,6 @@
 import network
 import time
+import uasyncio
 
 frequencia = 0
 
@@ -24,6 +25,9 @@ app = Microdot()
 # Variável com o histórico de lançamentos 
 lancamentos = []
 
+# Lock
+servo_lock = uasyncio.Lock()
+
 # ------------------------------------------------
 # -------------------- Rotas --------------------
 # ------------------------------------------------
@@ -33,35 +37,43 @@ async def page(request):
 
 
 @app.route('/lancar', methods=['POST'])
-async def control(request):
+async def lancar(request):
     try:
-        data = request.json
+        if servo_lock.locked(): # Se o servo está em movimento, não executa novo movimento
+            return {"status": "error", "message": "O hardware está ocupado. Tente novamente em instantes."}, 423 
+        
+        async with servo_lock:
+          data = request.json
+          return {"status": "success"}
         # código para mexer o servo de modo a lançar e ligar um led
     except Exception as e:
         return {"status": f"error: {e}"}
     
 
 @app.route('/buzinar', methods=['POST'])
-async def control(request):
+async def buzinar(request):
     try:
         data = request.json
         # código para buzinar
+        return {"status": "success"}
     except Exception as e:
         return {"status": f"error: {e}"}
 
 
 @app.route('/mudarFrequencia', methods=['POST'])
-async def control(request):
+async def mudar_freq(request):
+    global frequencia
     try:
         data = request.json
         nova_freq = int(data.get("frequencia"))
         frequencia = nova_freq
+        return {"status": "success"}
     except Exception as e:
         return {"status": f"error: {e}"}
 
 
 @app.route('/historico', methods = ['GET'])
-async def historic(request):
+async def history(request):
     try:
         return lancamentos
     except Exception as e:
