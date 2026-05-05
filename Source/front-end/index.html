@@ -17,9 +17,15 @@
         <h1>Hot Wheels ESP32</h1>
         <span>Speed Tracker · Hall Sensor</span>
       </div>
-      <div class="status-dot">
-        <div class="dot" id="connDot"></div>
-        <span id="connLabel">Offline</span>
+      
+      <div class="connection-group">
+        <input type="text" id="ipInput" class="esp-ip-input" placeholder="IP: 192.168.x.x" value="192.168.43.100" maxlength="15">
+        <button class="btn-ip" onclick="mudarIP()">OK</button>
+        
+        <div class="status-dot">
+          <div class="dot" id="connDot"></div>
+          <span id="connLabel">Offline</span>
+        </div>
       </div>
     </div>
 

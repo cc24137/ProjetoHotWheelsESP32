@@ -76,8 +76,8 @@ body {
   color: var(--light-blue);
 }
 
+/* ── Substitua sua classe .status-dot antiga por esta: ── */
 .status-dot {
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -87,6 +87,63 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--grey);
+}
+
+/* ── Adicione as novas classes abaixo: ── */
+.connection-group {
+  margin-left: auto; /* Empurra todo o bloco (input + status) para a direita */
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.esp-ip-input {
+  background: #111827;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  color: #fff;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.8rem;
+  padding: 0.45rem 0.75rem;
+  width: 130px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.esp-ip-input:focus {
+  border-color: var(--light-blue);
+}
+
+.btn-ip {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: transparent;
+  color: var(--light-blue);
+  border: 1px solid var(--light-blue);
+  padding: 0.45rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.btn-ip:hover {
+  background: rgba(0, 157, 220, 0.1);
+}
+
+/* Ajuste mobile para o cabeçalho não quebrar com o input */
+@media (max-width: 600px) {
+  .header {
+    flex-wrap: wrap;
+  }
+  .connection-group {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+  }
 }
 
 .dot {

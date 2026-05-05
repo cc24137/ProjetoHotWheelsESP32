@@ -187,3 +187,36 @@ clearBtn.addEventListener('click', () => {
   document.getElementById('tickLaps').textContent    = '0';
   document.getElementById('tickTime').textContent    = '00:00';
 });
+
+document.getElementById('ipInput').addEventListener('input', function(e) {
+  let v = this.value;
+  
+  // 1. Remove qualquer caractere que não seja número ou ponto
+  v = v.replace(/[^\d.]/g, '');
+  
+  let blocos = v.split('.');
+  
+  // 2. Limita a no máximo 4 blocos de números (ex: 192.168.1.100)
+  if (blocos.length > 4) {
+    blocos = blocos.slice(0, 4);
+  }
+  
+  // 3. Garante que nenhum bloco tenha mais de 3 números
+  for (let i = 0; i < blocos.length; i++) {
+    if (blocos[i].length > 3) {
+      blocos[i] = blocos[i].substring(0, 3);
+    }
+  }
+  
+  v = blocos.join('.');
+  
+  // 4. Adiciona o ponto automaticamente ao atingir 3 dígitos (se não estiver apagando)
+  if (e.inputType !== 'deleteContentBackward') {
+    let ultimoBloco = blocos[blocos.length - 1];
+    if (ultimoBloco.length === 3 && blocos.length < 4) {
+      v += '.';
+    }
+  }
+  
+  this.value = v;
+});
