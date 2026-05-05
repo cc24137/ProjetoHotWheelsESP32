@@ -1,5 +1,9 @@
 // Substitua pelo IP que o seu ESP32 pegar no WiFi do celular
-const esp32IP = "http://192.168.43.100";
+var esp32IP = "http://192.168.43.100";
+
+function mudarIP() {
+  esp32IP = "http://" + document.getElementById('ipInput').value;
+}
 
 async function dispararAcao(rota) {
     try {
