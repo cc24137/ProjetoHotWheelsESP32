@@ -64,5 +64,7 @@ def testarDisplay():
 
 #Inicialização
 while True:
-    detectarCarro()
+    testarServo()
+    #testarDisplay()
+    #detectarCarro()
     time.sleep(1)
