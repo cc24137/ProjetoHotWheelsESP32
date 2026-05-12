@@ -51,12 +51,8 @@ body {
   gap: 1rem;
 }
 
-.logo-flame {
-  width: 44px;
-  height: 44px;
-  background: var(--orange);
-  clip-path: polygon(50% 0%, 80% 20%, 100% 50%, 70% 40%, 90% 80%, 55% 60%, 50% 100%, 45% 60%, 10% 80%, 30% 40%, 0% 50%, 20% 20%);
-  flex-shrink: 0;
+.logo-flame img{
+  width: 90px;
 }
 
 .header-text h1 {

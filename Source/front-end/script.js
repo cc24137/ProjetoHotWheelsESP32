@@ -41,7 +41,7 @@ function updateUI() {
   document.getElementById('lapCount').innerHTML =
     `${readings.length}<span class="unit">total</span>`;
  
-  document.getElementById('countBadge').textContent = `${readings.length} readings`;
+  document.getElementById('countBadge').textContent = `${readings.length} leituras`;
   document.getElementById('tickCurrent').textContent = cur !== null ? `${cur.toFixed(1)} km/h` : '— km/h';
   document.getElementById('tickPeak').textContent    = topSpeed > 0  ? `${topSpeed.toFixed(1)} km/h` : '— km/h';
   document.getElementById('tickLaps').textContent    = readings.length;
@@ -49,8 +49,8 @@ function updateUI() {
  
 // ── Status pill ───────────────────────────────
 function getStatusPill(speed, prev) {
-  if (speed > 60)                        return '<span class="status-pill pill-record">Record</span>';
-  if (prev !== null && speed > prev * 1.1) return '<span class="status-pill pill-fast">Fast</span>';
+  if (speed > 60)                        return '<span class="status-pill pill-record">Recorde</span>';
+  if (prev !== null && speed > prev * 1.1) return '<span class="status-pill pill-fast">Rápido</span>';
   return '<span class="status-pill pill-pass">Pass</span>';
 }
  
@@ -95,10 +95,10 @@ startBtn.addEventListener('click', () => {
   running = !running;
  
   if (running) {
-    startBtn.textContent = 'Stop';
+    startBtn.textContent = 'Parar';
     startBtn.classList.add('running');
     connDot.classList.add('active');
-    connLabel.textContent = 'Live';
+    connLabel.textContent = 'Online';
  
     if (!startTime) startTime = Date.now();
  
@@ -116,7 +116,7 @@ startBtn.addEventListener('click', () => {
       }, 1000);
     }
   } else {
-    startBtn.textContent = 'Start';
+    startBtn.textContent = 'Iniciar';
     startBtn.classList.remove('running');
     connDot.classList.remove('active');
     connLabel.textContent = 'Paused';
@@ -148,7 +148,7 @@ stopBtn.addEventListener('click', () => {
     <td>${now}</td>
     <td class="speed-cell">—</td>
     <td>—</td>
-    <td><span class="status-pill pill-stop">Buzzer</span></td>
+    <td><span class="status-pill pill-stop">Buzina</span></td>
   `;
   tbody.insertBefore(tr, tbody.firstChild);
 });
@@ -172,7 +172,7 @@ clearBtn.addEventListener('click', () => {
     connLabel.textContent = 'Offline';
   }
  
-  tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No readings yet — press Start</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Não há leituras ainda. Clique em Início para começar.</td></tr>';
  
   updateGauge(0);
   gaugeText.textContent = '0';

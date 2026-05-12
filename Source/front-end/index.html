@@ -12,10 +12,12 @@
     <div class="track-stripes"></div>
 
     <div class="header">
-      <div class="logo-flame"></div>
+      <div class="logo-flame">
+          <img src="assets/tubarao.png" alt="LogoTubarao">
+      </div>
       <div class="header-text">
         <h1>Hot Wheels ESP32</h1>
-        <span>Speed Tracker · Hall Sensor</span>
+        <span>Medidor de Velocidade</span>
       </div>
       
       <div class="connection-group">
@@ -30,25 +32,25 @@
     </div>
 
     <div class="ticker-bar">
-      <span>Current: <span id="tickCurrent">— km/h</span></span>
-      <span>Peak: <span id="tickPeak">— km/h</span></span>
-      <span>Readings: <span id="tickLaps">0</span></span>
-      <span>Uptime: <span id="tickTime">00:00</span></span>
+      <span>Atual: <span id="tickCurrent">— km/h</span></span>
+      <span>Máximo: <span id="tickPeak">— km/h</span></span>
+      <span>Leituras: <span id="tickLaps">0</span></span>
+      <span>Tempo: <span id="tickTime">00:00</span></span>
     </div>
 
     <div class="main-content">
 
       <div class="speedometer-row">
         <div class="speed-card primary">
-          <div class="card-label">Current Speed</div>
+          <div class="card-label">Velocidade Atual</div>
           <div class="card-value orange" id="currentSpeed">—<span class="unit">km/h</span></div>
         </div>
         <div class="speed-card info">
-          <div class="card-label">Top Speed</div>
+          <div class="card-label">Velocidade Máxima</div>
           <div class="card-value blue" id="topSpeed">—<span class="unit">km/h</span></div>
         </div>
         <div class="speed-card danger">
-          <div class="card-label">Readings</div>
+          <div class="card-label">Leituras</div>
           <div class="card-value" id="lapCount">0<span class="unit">total</span></div>
         </div>
       </div>
@@ -63,12 +65,12 @@
           </svg>
         </div>
         <div class="gauge-info">
-          <h3>Speed Monitor</h3>
-          <p>Hall effect sensor reading from wheel rotation. Trigger the sensor to log speed data.</p>
+          <h3>Sensor de Velocidade</h3>
+          <p>Calcula a velocidade com base nas leituras do sensor.</p>
           <div class="controls-row">
-            <button class="btn btn-start" id="startButton">Start</button>
-            <button class="btn btn-buzzer" id="stopButton">Buzzer</button>
-            <button class="btn btn-clear" id="clearBtn">Clear</button>
+            <button class="btn btn-start" id="startButton">Início</button>
+            <button class="btn btn-buzzer" id="stopButton">Buzina</button>
+            <button class="btn btn-clear" id="clearBtn">Limpar</button>
           </div>
         </div>
       </div>
@@ -76,21 +78,21 @@
       <div class="history-section">
         <div class="history-header">
           <h2>History</h2>
-          <span class="count-badge" id="countBadge">0 readings</span>
+          <span class="count-badge" id="countBadge">0 leituras</span>
         </div>
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Time</th>
-              <th>Speed</th>
-              <th>Delta</th>
+              <th>Tempo</th>
+              <th>Velocidade</th>
+              <th>Variação</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="historyTableBody">
             <tr>
-              <td colspan="5" class="empty-state">No readings yet — press Start</td>
+              <td colspan="5" class="empty-state">Não há leituras ainda. Clique em Início para começar.</td>
             </tr>
           </tbody>
         </table>
