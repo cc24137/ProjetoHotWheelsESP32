@@ -1,6 +1,6 @@
 #Imports
 from machine import Pin, PWM,SoftSPI
-from max7219 import Max7219
+from libs.max7129 import Max7219
 import time
 
 
@@ -14,12 +14,16 @@ spi = SoftSPI(baudrate=10000000, polarity=1, phase=0, sck=Pin(18), mosi=Pin(32),
 cs = Pin(5, Pin.OUT)
 display = Max7219(32, 8, spi, cs) 
 
+#HW-201
+sensor = Pin(13, Pin.IN)
+
 #Funções
 def tocarBuzina(frequency, duration_ms):
     buzzer.freq(frequency)
     buzzer.duty(512) 
     time.sleep_ms(duration_ms)
     buzzer.duty(0) 
+
 
 def girarServo(angulo):
     duty = int((angulo / 180) * 100 +25) #Converte o angulo para um valor entre 0-1023
@@ -36,6 +40,10 @@ def mostrarMensagemDisplayLed(mensagem,scrool=False,brihlo =15):
         display.text(mensagem, 0, 1)
         display.show()
 
+def detectarCarro():
+    if(sensor.value()==0):
+        tocarBuzina(1024,100);
+    return True
 #Funcoes testes
 frequencys = {1064,2064,3064,4064}
 def testarBuzina():
@@ -56,4 +64,5 @@ def testarDisplay():
 
 #Inicialização
 while True:
+    detectarCarro()
     time.sleep(1)
