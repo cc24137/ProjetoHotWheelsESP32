@@ -6,13 +6,13 @@ from microdot import Microdot
 frequencia = 0
 
 # Informações da conexão
-ssid = "rededoesp"
-pwd  = "senha123"
+ssid = "AndroidAPF7B9"
+pwd  = "rafinhabr"
 
 # Conexão
-sta = network.WLAN(network.AP_IF)
+sta = network.WLAN(network.STA_IF)
 sta.active(True)
-sta.config(essid=ssid, password=pwd)
+sta.connect(ssid, pwd)
 while sta.active() == False:
     print('.', end="")
     time.sleep(0.3)
@@ -85,4 +85,4 @@ async def history(request):
         return {"status": f"error: {e}"}
 
 
-app.run(host= '0.0.0.0',debug=True, port=80)
+app.run(port=80)
