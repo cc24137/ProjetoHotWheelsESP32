@@ -1,18 +1,19 @@
 import network
 import time
 import uasyncio
-from microdot import Microdot
-
-frequencia = 0
+from microdot import Microdot, Response
 
 # Informações da conexão
 ssid = "silksongLovers"
 pwd  = "aura+ego"
 
-# Conexão
+# ------------------------------------------------
+# CONEXÃO WIFI
+# ------------------------------------------------
 sta = network.WLAN(network.STA_IF)
 sta.active(True)
 sta.connect(ssid, pwd)
+
 while not sta.isconnected():
     print('.', end="")
     time.sleep(0.3)
@@ -20,90 +21,135 @@ while not sta.isconnected():
 print('\nConectado com sucesso!')
 print('Seu IP é: ', sta.ifconfig()[0])
 
+# ------------------------------------------------
+# MICRODOT
+# ------------------------------------------------
 app = Microdot()
 
-# Intercepta todas as respostas para adicionar os cabeçalhos de segurança (CORS)
-@app.after_request
-async def add_cors(request, response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, ngrok-skip-browser-warning'
-    return response
+Response.default_content_type = 'application/json'
 
-# Variável com o histórico de lançamentos 
-lancamentos = []
-
-# Lock
+# Variáveis globais
+frequencia = 0
+lancamentos = []  # Ex: [25.4, 30.1]
 servo_lock = uasyncio.Lock()
 
+# ------------------------------------------------
+# CORS GLOBAL
+# ------------------------------------------------
+@app.after_request
+async def cors(request, response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
+# ------------------------------------------------
+# OPTIONS GLOBAL (PREFLIGHT)
+# ------------------------------------------------
+@app.route('/<path:path>', methods=['OPTIONS'])
+async def options(request, path):
+    return ''
 
 # ------------------------------------------------
 # -------------------- Rotas --------------------
 # ------------------------------------------------
-@app.route('/', methods = ['GET'])
+
+@app.route('/', methods=['GET'])
 async def page(request):
-    print("Rota / acessada")
-    return "pagina"
+    print("Rota / (Ping de conexão) acessada")
+    return "OK"
 
-
-@app.route('/lancar', methods=['POST', 'OPTIONS'])
+@app.route('/lancar', methods=['POST'])
 async def lancar(request):
-    
-    if request.method == 'OPTIONS':
-        return ""
-    
+
     print("Rota /lancar acessada")
+
     try:
-        if servo_lock.locked(): # Se o servo está em movimento, não executa novo movimento
-            return {"status": "error", "message": "O hardware está ocupado. Tente novamente em instantes."}, 423 
-        
+
+        if servo_lock.locked():
+            return {
+                "status": "error",
+                "message": "Hardware ocupado"
+            }, 423
+
         async with servo_lock:
-          data = request.json
-          return {"status": "success"}
-        # código para mexer o servo de modo a lançar e ligar um led
-    except Exception as e:
-        return {"status": f"error: {e}"}
-    
 
-@app.route('/buzinar', methods=['POST', 'OPTIONS'])
+            # Aqui você insere o código do Servo/Atuador
+
+            # Exemplo:
+            # mover_servo()
+
+            # Simulando nova velocidade:
+            # nova_velocidade = calcular_velocidade()
+            # lancamentos.append(nova_velocidade)
+
+            return {
+                "status": "success"
+            }
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
+@app.route('/buzinar', methods=['POST'])
 async def buzinar(request):
-    
-    if request.method == 'OPTIONS':
-        return ""
-    
+
     print("Rota /buzinar acessada")
+
     try:
-        data = request.json
-        # código para buzinar
-        return {"status": "success"}
-    except Exception as e: # ta ta ta tarariaria ta ta tatatata tararatrarara
-        return {"status": f"error: {e}"}
 
+        # Código do buzzer aqui
 
-@app.route('/mudarFrequencia', methods=['POST', 'OPTIONS'])
+        return {
+            "status": "success"
+        }
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 500
+
+@app.route('/mudarFrequencia', methods=['POST'])
 async def mudar_freq(request):
-    
-    if request.method == 'OPTIONS':
-        return ""
-    
+
     print("Rota /mudarFrequencia acessada")
+
     global frequencia
+
     try:
-        data = request.json
-        nova_freq = int(data.get("frequencia"))
+
+        data = request.json or {}
+
+        nova_freq = int(data.get("frequencia", 0))
+
         frequencia = nova_freq
-        return {"status": "success"}
+
+        print(f"Nova frequência: {frequencia}")
+
+        return {
+            "status": "success"
+        }
+
     except Exception as e:
-        return {"status": f"error: {e}"}
 
+        return {
+            "status": "error",
+            "message": str(e)
+        }, 400
 
-@app.route('/historico', methods = ['GET'])
+@app.route('/historico', methods=['GET'])
 async def history(request):
-    try:
-        print("Rota /historico acessada")
-        return lancamentos
-    except Exception as e:
-        return {"status": f"error: {e}"}
 
+    print("Rota /historico acessada")
 
+    return lancamentos
+
+# ------------------------------------------------
+# EXECUÇÃO DO SERVIDOR
+# ------------------------------------------------
 app.run(port=80)
