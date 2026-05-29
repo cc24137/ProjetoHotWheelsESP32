@@ -4,7 +4,7 @@ from libs.max7129 import Max7219
 import time
 
 
-#Portas e sensores
+#Portas e sensorIniciales
 buzzer = PWM(Pin(25)) # Change 15 to your GPIO pin
 buzzer.duty(0)
 
@@ -15,7 +15,38 @@ cs = Pin(5, Pin.OUT)
 display = Max7219(32, 8, spi, cs) 
 
 #HW-201
-sensor = Pin(13, Pin.IN)
+sensorInicial = Pin(13, Pin.IN)
+sensorFinal = Pin(14,Pin.IN)
+timeInicial = 0
+timeFinal = 0
+distanciaPista = 45 #Valor precisa ser alterado
+#Funções para Deploy
+def detectarInicioTrajeto(pin):
+    global timeInicial,timeFinal
+    timeInicial = time.now()
+    if timeFinal != 0:
+        timeFinal =0
+
+def detectarFinalTrajeto(pin):
+    global timeFinal,timeInicial
+    if timeInicial == 0:
+        raise Exception("Objeto não passou pelo sensor Inicial!!")
+    timeFinal = time.time()
+
+def calcularVelocidade():
+    global timeInicial,timeFinal,distanciaPista
+    if timeInicial ==0 or timeFinal == 0:
+        raise Exception("Tempos não definidos!")
+    metroDistancia = distanciaPista /100 
+    velocidade = metroDistancia / (timeFinal - timeInicial)
+    timeInicial =0
+    timeFinal = 0
+    return velocidade
+
+#Teste de callback
+#Teste de sensor infravermelho, é para chamar as funções a partir da alteração dos sensores
+sensorInicial.irq(trigger=Pin.IRQ_FALLING, handler=detectarInicioTrajeto)
+sensorFinal.irq(trigger=Pin.IRQ_FALLING, handler=detectarFinalTrajeto)
 
 #Funções
 def tocarBuzina(frequency, duration_ms):
@@ -41,9 +72,11 @@ def mostrarMensagemDisplayLed(mensagem,scrool=False,brihlo =15):
         display.show()
 
 def detectarCarro():
-    if(sensor.value()==0):
+    if(sensorInicial.value()==0):
         tocarBuzina(1024,100);
     return True
+
+
 #Funcoes testes
 frequencys = {1064,2064,3064,4064}
 def testarBuzina():
@@ -64,7 +97,5 @@ def testarDisplay():
 
 #Inicialização
 while True:
-    testarServo()
-    #testarDisplay()
-    #detectarCarro()
-    time.sleep(1)
+    if sensorInicial != 0 and sensorFinal !=0:
+        calcularVelocidade()
