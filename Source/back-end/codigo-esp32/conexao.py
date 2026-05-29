@@ -4,6 +4,7 @@ import time
 import uasyncio
 from microdot import Microdot
 import json
+from sensores import Sensores
 
 # ------------------------------------------------
 # INFORMAÇÕES DA REDE
@@ -28,9 +29,10 @@ print('\nConectado com sucesso!')
 print('Seu IP é:', sta.ifconfig()[0])
 
 # ------------------------------------------------
-# MICRODOT
+# MICRODOT e CONTROLADOR DE SENSORES
 # ------------------------------------------------
 app = Microdot()
+controller = Sensores()
 
 # ------------------------------------------------
 # VARIÁVEIS GLOBAIS
@@ -97,16 +99,19 @@ async def lancar(request):
             }, 423)
 
         async with servo_lock:
-
-            # ------------------------------------------------
-            # CÓDIGO DO SERVO AQUI
-            # ------------------------------------------------
-
-            # Exemplo:
-            # mover_servo()
-
-            # Simulação:
-            # lancamentos.append(42.5)
+            controller.mostrarMensagemDisplayLed("3")
+            time.sleep(1)
+            controller.mostrarMensagemDisplayLed("2")
+            time.sleep(1)
+            controller.mostrarMensagemDisplayLed("1")
+            time.sleep(1)
+            controller.mostrarMensagemDisplayLed("iniciar!")
+            controller.tocarBuzina(2064, 1000)
+            controller.girarServo(90) # gira uma vez
+            
+            time.sleep(5)
+            
+            controller.girarServo(0)
 
             return corsify({
                 "status": "success"
@@ -130,9 +135,7 @@ async def buzinar(request):
 
     try:
 
-        # ------------------------------------------------
-        # CÓDIGO DO BUZZER AQUI
-        # ------------------------------------------------
+        controller.tocarBuzina(2064, 1000)
 
         return corsify({
             "status": "success"
