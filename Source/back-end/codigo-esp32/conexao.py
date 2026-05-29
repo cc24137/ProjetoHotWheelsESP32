@@ -6,20 +6,29 @@ from microdot import Microdot
 frequencia = 0
 
 # Informações da conexão
-ssid = "AndroidAPF7B9"
-pwd  = "rafinhabr"
+ssid = "silksongLovers"
+pwd  = "aura+ego"
 
 # Conexão
 sta = network.WLAN(network.STA_IF)
 sta.active(True)
 sta.connect(ssid, pwd)
-while sta.active() == False:
+while not sta.isconnected():
     print('.', end="")
     time.sleep(0.3)
 
-print('\nConectado ao ip: ', sta.ifconfig()[0])
+print('\nConectado com sucesso!')
+print('Seu IP é: ', sta.ifconfig()[0])
 
 app = Microdot()
+
+# Intercepta todas as respostas para adicionar os cabeçalhos de segurança (CORS)
+@app.after_request
+async def add_cors(request, response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, ngrok-skip-browser-warning'
+    return response
 
 # Variável com o histórico de lançamentos 
 lancamentos = []
@@ -37,8 +46,12 @@ async def page(request):
     return "pagina"
 
 
-@app.route('/lancar', methods=['POST'])
+@app.route('/lancar', methods=['POST', 'OPTIONS'])
 async def lancar(request):
+    
+    if request.method == 'OPTIONS':
+        return ""
+    
     print("Rota /lancar acessada")
     try:
         if servo_lock.locked(): # Se o servo está em movimento, não executa novo movimento
@@ -52,8 +65,12 @@ async def lancar(request):
         return {"status": f"error: {e}"}
     
 
-@app.route('/buzinar', methods=['POST'])
+@app.route('/buzinar', methods=['POST', 'OPTIONS'])
 async def buzinar(request):
+    
+    if request.method == 'OPTIONS':
+        return ""
+    
     print("Rota /buzinar acessada")
     try:
         data = request.json
@@ -63,8 +80,12 @@ async def buzinar(request):
         return {"status": f"error: {e}"}
 
 
-@app.route('/mudarFrequencia', methods=['POST'])
+@app.route('/mudarFrequencia', methods=['POST', 'OPTIONS'])
 async def mudar_freq(request):
+    
+    if request.method == 'OPTIONS':
+        return ""
+    
     print("Rota /mudarFrequencia acessada")
     global frequencia
     try:
