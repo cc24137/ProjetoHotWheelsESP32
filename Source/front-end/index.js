@@ -1,20 +1,33 @@
 // ── CONFIGURAÇÕES DE CONEXÃO ──────────────────
 var baseUrl = "http://192.168.43.100";
+
 let running = false;
+
 let readings = [];
+
 let topSpeed = 0;
+
 let startTime = null;
+
 let uptimeInt = null;
-let pollInterval = null; 
+
+let pollInterval = null;
 
 // ── ELEMENTOS DA UI ───────────────────────────
 const startBtn = document.getElementById('startButton');
+
 const stopBtn = document.getElementById('stopButton');
+
 const clearBtn = document.getElementById('clearBtn');
+
 const tbody = document.getElementById('historyTableBody');
+
 const connDot = document.getElementById('connDot');
+
 const connLabel = document.getElementById('connLabel');
+
 const gaugeFill = document.getElementById('gaugeFill');
+
 const gaugeText = document.getElementById('gaugeText');
 
 // ── LÓGICA DE CONEXÃO (CHECKER) ───────────────
@@ -24,10 +37,11 @@ async function verificarConexao() {
 
         const controller = new AbortController();
 
-        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+        }, 3000);
 
         const resp = await fetch(`${baseUrl}/`, {
-            method: 'GET',
             signal: controller.signal
         });
 
@@ -36,16 +50,24 @@ async function verificarConexao() {
         if (resp.ok) {
 
             connDot.classList.add('active');
+
             connLabel.textContent = 'Online';
+
             connLabel.style.color = '#00ff00';
 
             return true;
         }
 
+        throw new Error("ESP32 respondeu com erro");
+
     } catch (err) {
 
+        console.error("Erro de conexão:", err);
+
         connDot.classList.remove('active');
+
         connLabel.textContent = 'Offline';
+
         connLabel.style.color = 'rgba(255,255,255,0.5)';
 
         return false;
@@ -54,13 +76,17 @@ async function verificarConexao() {
 
 setInterval(verificarConexao, 5000);
 
+// ── ALTERAR IP ────────────────────────────────
 function mudarIP() {
 
     let inputUrl = document.getElementById('ipInput').value.trim();
 
     if (!inputUrl.startsWith('http')) {
+
         baseUrl = "http://" + inputUrl;
+
     } else {
+
         baseUrl = inputUrl;
     }
 
@@ -79,13 +105,7 @@ async function dispararAcao(rota) {
     try {
 
         const resposta = await fetch(`${baseUrl}${rota}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                timestamp: Date.now()
-            })
+            method: 'POST'
         });
 
         return resposta.ok;
@@ -98,21 +118,24 @@ async function dispararAcao(rota) {
     }
 }
 
+// ── BUSCAR HISTÓRICO ──────────────────────────
 async function buscarDadosDoESP() {
 
     try {
 
-        const resposta = await fetch(`${baseUrl}/historico`, {
-            method: 'GET'
-        });
+        const resposta = await fetch(`${baseUrl}/historico`);
 
         if (resposta.ok) {
 
             const dados = await resposta.json();
 
-            if (Array.isArray(dados) && dados.length > readings.length) {
+            if (
+                Array.isArray(dados) &&
+                dados.length > readings.length
+            ) {
 
-                const novaVelocidade = dados[dados.length - 1];
+                const novaVelocidade =
+                    dados[dados.length - 1];
 
                 addReading(parseFloat(novaVelocidade));
             }
@@ -120,35 +143,58 @@ async function buscarDadosDoESP() {
 
     } catch (erro) {
 
-        console.error("Erro ao buscar histórico:", erro);
+        console.error(
+            "Erro ao buscar histórico:",
+            erro
+        );
     }
 }
 
-// ── LÓGICA DO DASHBOARD (UI) ──────────────────
+// ── LÓGICA DO DASHBOARD ───────────────────────
 function updateGauge(speed, max = 80) {
 
     const pct = Math.min(speed / max, 1);
 
-    const offset = (157 * (1 - pct)).toFixed(1);
+    const offset =
+        (157 * (1 - pct)).toFixed(1);
 
-    gaugeFill.setAttribute('stroke-dashoffset', offset);
+    gaugeFill.setAttribute(
+        'stroke-dashoffset',
+        offset
+    );
 
     if (pct < 0.5) {
-        gaugeFill.setAttribute('stroke', '#009DDC');
+
+        gaugeFill.setAttribute(
+            'stroke',
+            '#009DDC'
+        );
+
     } else if (pct < 0.8) {
-        gaugeFill.setAttribute('stroke', '#FF7F11');
+
+        gaugeFill.setAttribute(
+            'stroke',
+            '#FF7F11'
+        );
+
     } else {
-        gaugeFill.setAttribute('stroke', '#FF1B1C');
+
+        gaugeFill.setAttribute(
+            'stroke',
+            '#FF1B1C'
+        );
     }
 
-    gaugeText.textContent = speed.toFixed(1);
+    gaugeText.textContent =
+        speed.toFixed(1);
 }
 
 function updateUI() {
 
-    const cur = readings.length
-        ? readings[readings.length - 1].speed
-        : null;
+    const cur =
+        readings.length
+            ? readings[readings.length - 1].speed
+            : null;
 
     document.getElementById('currentSpeed').innerHTML =
         cur !== null
@@ -180,23 +226,27 @@ function updateUI() {
         readings.length;
 }
 
+// ── ADICIONAR LEITURA ─────────────────────────
 function addReading(speed) {
 
     const now = new Date();
 
-    const timeStr = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-    });
+    const timeStr =
+        now.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
 
-    const prev = readings.length
-        ? readings[readings.length - 1].speed
-        : null;
+    const prev =
+        readings.length
+            ? readings[readings.length - 1].speed
+            : null;
 
-    const diff = prev !== null
-        ? speed - prev
-        : null;
+    const diff =
+        prev !== null
+            ? speed - prev
+            : null;
 
     readings.push({
         speed,
@@ -207,13 +257,15 @@ function addReading(speed) {
         topSpeed = speed;
     }
 
-    const placeholder = tbody.querySelector('td[colspan]');
+    const placeholder =
+        tbody.querySelector('td[colspan]');
 
     if (placeholder) {
         tbody.innerHTML = '';
     }
 
-    const tr = document.createElement('tr');
+    const tr =
+        document.createElement('tr');
 
     const deltaColor =
         diff === null
@@ -224,9 +276,11 @@ function addReading(speed) {
 
     const deltaStr =
         diff !== null
-            ? (diff >= 0
-                ? `+${diff.toFixed(1)}`
-                : diff.toFixed(1))
+            ? (
+                diff >= 0
+                    ? `+${diff.toFixed(1)}`
+                    : diff.toFixed(1)
+            )
             : '—';
 
     tr.innerHTML = `
@@ -251,7 +305,10 @@ function addReading(speed) {
         </td>
     `;
 
-    tbody.insertBefore(tr, tbody.firstChild);
+    tbody.insertBefore(
+        tr,
+        tbody.firstChild
+    );
 
     updateGauge(speed);
 
@@ -261,7 +318,8 @@ function addReading(speed) {
 // ── EVENTOS DOS BOTÕES ────────────────────────
 startBtn.addEventListener('click', async () => {
 
-    const sucesso = await dispararAcao('/lancar');
+    const sucesso =
+        await dispararAcao('/lancar');
 
     if (sucesso) {
 
@@ -277,23 +335,32 @@ startBtn.addEventListener('click', async () => {
                 startTime = Date.now();
             }
 
-            pollInterval = setInterval(buscarDadosDoESP, 1000);
+            pollInterval =
+                setInterval(
+                    buscarDadosDoESP,
+                    1000
+                );
 
             if (!uptimeInt) {
 
-                uptimeInt = setInterval(() => {
+                uptimeInt =
+                    setInterval(() => {
 
-                    const elapsed =
-                        Math.floor((Date.now() - startTime) / 1000);
+                        const elapsed =
+                            Math.floor(
+                                (Date.now() - startTime) / 1000
+                            );
 
-                    const m = Math.floor(elapsed / 60);
+                        const m =
+                            Math.floor(elapsed / 60);
 
-                    const s = elapsed % 60;
+                        const s =
+                            elapsed % 60;
 
-                    document.getElementById('tickTime').textContent =
-                        `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                        document.getElementById('tickTime').textContent =
+                            `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 
-                }, 1000);
+                    }, 1000);
             }
 
         } else {
@@ -303,10 +370,13 @@ startBtn.addEventListener('click', async () => {
 
     } else {
 
-        alert("Erro: ESP32 não respondeu ao comando /lancar");
+        alert(
+            "Erro: ESP32 não respondeu ao comando /lancar"
+        );
     }
 });
 
+// ── PARAR MONITORAMENTO ───────────────────────
 function paraMonitoramento() {
 
     startBtn.textContent = 'Iniciar';
@@ -320,9 +390,11 @@ function paraMonitoramento() {
     running = false;
 }
 
+// ── BOTÃO BUZINA ──────────────────────────────
 stopBtn.addEventListener('click', async () => {
 
-    const sucesso = await dispararAcao('/buzinar');
+    const sucesso =
+        await dispararAcao('/buzinar');
 
     if (sucesso) {
 
@@ -332,13 +404,15 @@ stopBtn.addEventListener('click', async () => {
             stopBtn.style.background = '';
         }, 600);
 
-        const now = new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit'
-        });
+        const now =
+            new Date().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
 
-        const tr = document.createElement('tr');
+        const tr =
+            document.createElement('tr');
 
         tr.innerHTML = `
             <td colspan="2">—</td>
@@ -351,10 +425,14 @@ stopBtn.addEventListener('click', async () => {
             </td>
         `;
 
-        tbody.insertBefore(tr, tbody.firstChild);
+        tbody.insertBefore(
+            tr,
+            tbody.firstChild
+        );
     }
 });
 
+// ── LIMPAR DASHBOARD ──────────────────────────
 clearBtn.addEventListener('click', () => {
 
     readings = [];
@@ -376,11 +454,12 @@ clearBtn.addEventListener('click', () => {
 
     updateUI();
 
-    document.getElementById('tickTime').textContent = '00:00';
+    document.getElementById('tickTime').textContent =
+        '00:00';
 });
 
 // ── INPUT MASK ────────────────────────────────
-document.getElementById('ipInput').addEventListener('input', function(e) {
+document.getElementById('ipInput').addEventListener('input', function() {
 
     let v = this.value;
 
@@ -397,7 +476,8 @@ document.getElementById('ipInput').addEventListener('input', function(e) {
         for (let i = 0; i < blocos.length; i++) {
 
             if (blocos[i].length > 3) {
-                blocos[i] = blocos[i].substring(0, 3);
+                blocos[i] =
+                    blocos[i].substring(0, 3);
             }
         }
 
