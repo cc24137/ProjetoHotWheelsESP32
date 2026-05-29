@@ -21,8 +21,8 @@
       </div>
       
       <div class="connection-group">
-        <input type="text" id="ipInput" class="esp-ip-input" placeholder="IP: 192.168.x.x" value="192.168.43.100" maxlength="15">
-        <button class="btn-ip" onclick="mudarIP()">OK</button>
+        <input type="text" id="ipInput" class="esp-ip-input" placeholder="IP ou Link Ngrok" value="192.168.43.100" maxlength="15">
+        <button class="btn-ip" onclick="mudarIP()">Conectar</button>
         
         <div class="status-dot">
           <div class="dot" id="connDot"></div>
@@ -70,7 +70,7 @@
           <div class="controls-row">
             <button class="btn btn-start" id="startButton">Início</button>
             <button class="btn btn-buzzer" id="stopButton">Buzina</button>
-            <button class="btn btn-clear" id="clearBtn">Limpar</button>
+            <button class="btn btn-clear" id="clearBtn" onclick="buscarHistorico()">Limpar</button>
           </div>
         </div>
       </div>
@@ -101,7 +101,6 @@
     </div>
   </div>
 
-  <script src="script.js"></script>
   <script src="index.js"></script>
 </body>
 </html>
