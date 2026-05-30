@@ -1,9 +1,9 @@
+import json
+import time
 
 import network
-import time
 import uasyncio
 from microdot import Microdot
-import json
 from sensores import Sensores
 
 # ------------------------------------------------
@@ -12,13 +12,8 @@ from sensores import Sensores
 ssid = "silksongLovers"
 pwd  = "aura+ego"
 
-# ------------------------------------------------
-# CONEXÃO WIFI
-# ------------------------------------------------
 sta = network.WLAN(network.STA_IF)
-
 sta.active(True)
-
 sta.connect(ssid, pwd)
 
 while not sta.isconnected():
@@ -28,170 +23,75 @@ while not sta.isconnected():
 print('\nConectado com sucesso!')
 print('Seu IP é:', sta.ifconfig()[0])
 
-# ------------------------------------------------
-# MICRODOT e CONTROLADOR DE SENSORES
-# ------------------------------------------------
 app = Microdot()
 controller = Sensores()
 
-# ------------------------------------------------
-# VARIÁVEIS GLOBAIS
-# ------------------------------------------------
 frequencia = 0
-
-lancamentos = []  # Ex: [25.4, 30.1]
-
+lancamentos = []
 servo_lock = uasyncio.Lock()
 
-# ------------------------------------------------
-# RESPOSTA COM CORS
-# ------------------------------------------------
 def corsify(data, status=200):
-
     headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Content-Type': 'application/json'
     }
+    return json.dumps(data), status, headers
 
-    body = json.dumps(data)
-
-    return body, status, headers
-
-# ------------------------------------------------
-# OPTIONS GLOBAL (PREFLIGHT)
-# ------------------------------------------------
 @app.route('/<path:path>', methods=['OPTIONS'])
 async def options(request, path):
-
-    print("Preflight OPTIONS:", path)
-
     return corsify({})
-
-# ------------------------------------------------
-# -------------------- ROTAS --------------------
-# ------------------------------------------------
 
 @app.route('/', methods=['GET'])
 async def page(request):
-
-    print("Rota / acessada")
-
-    return corsify({
-        "status": "online"
-    })
-
-# ------------------------------------------------
+    return corsify({"status": "online"})
 
 @app.route('/lancar', methods=['POST'])
 async def lancar(request):
-
     print("Rota /lancar acessada")
-
     try:
-
+        # Trava para evitar que duas pessoas cliquem em 'Iniciar' ao mesmo tempo
         if servo_lock.locked():
-
-            return corsify({
-                "status": "error",
-                "message": "Hardware ocupado"
-            }, 423)
+            return corsify({"status": "error", "message": "Hardware ocupado"}, 423)
 
         async with servo_lock:
-            controller.mostrarMensagemDisplayLed("3")
-            time.sleep(1)
-            controller.mostrarMensagemDisplayLed("2")
-            time.sleep(1)
-            controller.mostrarMensagemDisplayLed("1")
-            time.sleep(1)
-            controller.mostrarMensagemDisplayLed("iniciar!")
-            controller.tocarBuzina(2064, 1000)
-            controller.girarServo(90) # gira uma vez
-            
-            time.sleep(5)
-            
-            controller.girarServo(0)
+            # O servidor web pede para o hardware fazer a corrida e aguarda o resultado
+            velocidade = await controller.realizar_lancamento(tempo_espera_maximo=5.0)
 
-            return corsify({
-                "status": "success"
-            })
+            if velocidade is not None:
+                lancamentos.append(velocidade)
+                print(f"Velocidade registrada: {velocidade} m/s")
+                return corsify({"status": "success"})
+            else:
+                print("Erro: O carrinho não cruzou o sensor a tempo.")
+                return corsify({"status": "error", "message": "Timeout do carrinho"}, 400)
 
     except Exception as e:
-
         print("Erro /lancar:", e)
-
-        return corsify({
-            "status": "error",
-            "message": str(e)
-        }, 500)
-
-# ------------------------------------------------
+        controller.girarServo(0) # Proteção em caso de quebra de código
+        return corsify({"status": "error", "message": str(e)}, 500)
 
 @app.route('/buzinar', methods=['POST'])
 async def buzinar(request):
-
-    print("Rota /buzinar acessada")
-
     try:
-
         controller.tocarBuzina(2064, 1000)
-
-        return corsify({
-            "status": "success"
-        })
-
+        return corsify({"status": "success"})
     except Exception as e:
-
-        print("Erro /buzinar:", e)
-
-        return corsify({
-            "status": "error",
-            "message": str(e)
-        }, 500)
-
-# ------------------------------------------------
+        return corsify({"status": "error", "message": str(e)}, 500)
 
 @app.route('/mudarFrequencia', methods=['POST'])
 async def mudar_freq(request):
-
-    print("Rota /mudarFrequencia acessada")
-
     global frequencia
-
     try:
-
         data = request.json or {}
-
-        nova_freq = int(data.get("frequencia", 0))
-
-        frequencia = nova_freq
-
-        print("Nova frequência:", frequencia)
-
-        return corsify({
-            "status": "success"
-        })
-
+        frequencia = int(data.get("frequencia", 0))
+        return corsify({"status": "success"})
     except Exception as e:
-
-        print("Erro /mudarFrequencia:", e)
-
-        return corsify({
-            "status": "error",
-            "message": str(e)
-        }, 400)
-
-# ------------------------------------------------
+        return corsify({"status": "error", "message": str(e)}, 400)
 
 @app.route('/historico', methods=['GET'])
 async def history(request):
-
-    print("Rota /historico acessada")
-
     return corsify(lancamentos)
 
-# ------------------------------------------------
-# EXECUÇÃO DO SERVIDOR
-# ------------------------------------------------
 app.run(port=80)
