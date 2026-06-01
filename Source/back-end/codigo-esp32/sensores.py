@@ -55,12 +55,13 @@ class Sensores:
         self.timeFinal = 0
 
     def detectarInicioTrajeto(self, pin):
+        #print("inicio")
         self.timeInicial = time.ticks_ms()
         if self.timeFinal != 0:
             self.timeFinal = 0
 
     def detectarFinalTrajeto(self, pin):
-        print("Entrou no tempo final")
+        #print("final")
         self.timeFinal = time.ticks_ms()
 
     # =========================================================
@@ -73,8 +74,8 @@ class Sensores:
         # cm -> m
         metroDistancia = self.distanciaPista / 100
 
-        print(self.timeFinal)
-        print(self.timeInicial)
+        #print(f"Tempo final: {self.timeFinal}")
+        #print(f"Tempo inicial: {self.timeInicial}")
 
         deltaTime = time.ticks_diff(self.timeFinal, self.timeInicial) / 1000
 
@@ -88,7 +89,7 @@ class Sensores:
 
         self.tocarBuzina(1064, 1000)
 
-        return velocidade
+        return velocidade, deltaTime
 
     # =========================================================
     # BUZZER
@@ -136,20 +137,32 @@ class Sensores:
 
     async def realizar_lancamento(self, tempo_espera_maximo=5.0):
             """
-            Orquestra toda a sequência: contagem, abertura, espera e cálculo.
-            Retorna a velocidade em m/s se houver sucesso, ou None se der timeout.
+                Orquestra toda a sequência: contagem, abertura, espera e cálculo.
+                Retorna a velocidade em m/s se houver sucesso, ou None se der timeout.
             """
+            # reseta tudo
+            self.girarServo(0)
+            self.buzzer.duty(0)
             self.resetarTempos()
     
             # Contagem regressiva
             self.mostrarMensagemDisplayLed("3")
+            self.tocarBuzina(2064, 500)
+
             await uasyncio.sleep(1)
+
             self.mostrarMensagemDisplayLed("2")
+            self.tocarBuzina(2064, 500)
+
             await uasyncio.sleep(1)
+
             self.mostrarMensagemDisplayLed("1")
+            self.tocarBuzina(2064, 500)
+
             await uasyncio.sleep(1)
             self.mostrarMensagemDisplayLed("GO!")
-            self.tocarBuzina(2064, 500)
+
+            self.tocarBuzina(3064, 1000)
             
             # Abre a catraca
             self.girarServo(90)
@@ -171,12 +184,12 @@ class Sensores:
     
             # Processa o resultado
             if sucesso:
-                vel_ms = self.calcularVelocidade()
+                vel_ms, tempo = self.calcularVelocidade()
                 vel_arredondado = round(vel_ms, 2)
                 
                 self.mostrarMensagemDisplayLed(f"{vel_arredondado}")
                 self.tocarBuzina(3000, 200) 
-                return vel_arredondado
+                return vel_arredondado, tempo
             else:
                 self.mostrarMensagemDisplayLed("ERRO")
                 self.tocarBuzina(500, 1000)
@@ -185,18 +198,31 @@ class Sensores:
     # TESTES
     # =========================================================
     def testarBuzina(self):
+        print("testando")
         frequencias = [1064, 2064, 3064, 4064]
         for freq in frequencias:
             self.tocarBuzina(freq, 1000)
 
     def testarServo(self):
-        for i in range(181):
-            self.girarServo(i)
+        print("teste")
+        self.girarServo(90)
         time.sleep(1)
         self.girarServo(0)
+        time.sleep(1)
 
     def testarDisplay(self):
         self.mostrarMensagemDisplayLed("Teste", True)
         time.sleep(1)
         self.mostrarMensagemDisplayLed("Teste")
         time.sleep(1)
+        
+
+#def main():
+    #sensores = Sensores()
+    
+    #sensores.testarServo()
+
+    #time.sleep(1)
+    #print(uasyncio.run(sensores.realizar_lancamento()))
+
+#main()

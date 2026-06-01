@@ -67,10 +67,16 @@ async function buscarDadosDoESP() {
         const resposta = await fetch(`${baseUrl}/historico`);
         if (resposta.ok) {
             const dados = await resposta.json();
-            if (Array.isArray(dados) && dados.length > readings.length) {
-                const novaVelocidade = dados[dados.length - 1];
-                addReading(parseFloat(novaVelocidade));
-            }
+            
+            limparHistorico();
+
+            dados.forEach((d) => {
+                addReading(parseFloat(d[0]), d[1]);
+            });
+            
+            startBtn.textContent = 'Início';
+            startBtn.classList.remove('running');
+            startBtn.disabled = false;
         }
     } catch (erro) {
         console.error("Erro ao buscar histórico:", erro);
@@ -79,7 +85,7 @@ async function buscarDadosDoESP() {
 
 // ── LÓGICA DO DASHBOARD ───────────────────────
 // MAX SPD
-function updateGauge(speed, max = 15) {
+function updateGauge(speed, max = 5) {
     const pct = Math.min(speed / max, 1);
     const offset = (157 * (1 - pct)).toFixed(1);
     gaugeFill.setAttribute('stroke-dashoffset', offset);
@@ -109,9 +115,8 @@ function updateUI() {
     document.getElementById('tickLaps').textContent = readings.length;
 }
 
-function addReading(speed) {
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+function addReading(speed, time) {
+    const timeStr = time;
     const prev = readings.length ? readings[readings.length - 1].speed : null;
     const diff = prev !== null ? speed - prev : null;
 
@@ -125,13 +130,12 @@ function addReading(speed) {
     const deltaColor = diff === null ? 'rgba(255,255,255,0.3)' : diff >= 0 ? '#FF7F11' : '#009DDC';
     const deltaStr = diff !== null ? (diff >= 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2)) : '—';
 
-    // Ajustei o limite da pílula visual de recorde para m/s (> 10 m/s como rápido)
     tr.innerHTML = `
         <td style="color:rgba(255,255,255,0.3);font-size:0.78rem;">${readings.length}</td>
-        <td>${timeStr}</td>
+        <td>${timeStr}</td> 
         <td class="speed-cell">${speed.toFixed(2)} m/s</td>
         <td style="color:${deltaColor};font-weight:700;">${deltaStr}</td>
-        <td><span class="status-pill ${speed > 10 ? 'pill-record' : 'pill-pass'}">${speed > 10 ? 'Recorde' : 'Pass'}</span></td>
+        <td><span class="status-pill ${speed > 5 ? 'pill-record' : 'pill-pass'}">${speed > 5 ? 'Recorde' : 'Pass'}</span></td>
     `;
     tbody.insertBefore(tr, tbody.firstChild);
 
@@ -141,12 +145,13 @@ function addReading(speed) {
 
 // ── EVENTOS DOS BOTÕES ────────────────────────
 startBtn.addEventListener('click', async () => {
+    startBtn.textContent = 'Rodando...';
+    startBtn.classList.add('running');
+    startBtn.disabled = true;
     const sucesso = await dispararAcao('/lancar');
     if (sucesso) {
         running = !running;
         if (running) {
-            startBtn.textContent = 'Parar';
-            startBtn.classList.add('running');
             if (!startTime) startTime = Date.now();
             pollInterval = setInterval(buscarDadosDoESP, 1000);
 
@@ -159,9 +164,15 @@ startBtn.addEventListener('click', async () => {
                 }, 1000);
             }
         } else {
+            startBtn.textContent = 'Início';
+            startBtn.classList.remove('running');
+            startBtn.disabled = false;
             paraMonitoramento();
         }
     } else {
+        startBtn.textContent = 'Início';
+        startBtn.classList.remove('running');
+        startBtn.disabled = false;
         alert("Erro: ESP32 não respondeu ao comando /lancar");
     }
 });
@@ -169,6 +180,7 @@ startBtn.addEventListener('click', async () => {
 function paraMonitoramento() {
     startBtn.textContent = 'Iniciar';
     startBtn.classList.remove('running');
+    startBtn.disabled = false;
     clearInterval(pollInterval);
     pollInterval = null;
     running = false;
@@ -186,7 +198,9 @@ stopBtn.addEventListener('click', async () => {
     }
 });
 
-clearBtn.addEventListener('click', () => {
+clearBtn.addEventListener('click', limparHistorico);
+
+function limparHistorico() {
     readings = [];
     topSpeed = 0;
     startTime = null;
@@ -197,7 +211,7 @@ clearBtn.addEventListener('click', () => {
     updateGauge(0);
     updateUI();
     document.getElementById('tickTime').textContent = '00:00';
-});
+}
 
 // ── INPUT MASK ────────────────────────────────
 document.getElementById('ipInput').addEventListener('input', function() {

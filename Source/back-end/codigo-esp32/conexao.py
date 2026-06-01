@@ -26,7 +26,6 @@ print('Seu IP é:', sta.ifconfig()[0])
 app = Microdot()
 controller = Sensores()
 
-frequencia = 0
 lancamentos = []
 servo_lock = uasyncio.Lock()
 
@@ -57,10 +56,13 @@ async def lancar(request):
 
         async with servo_lock:
             # O servidor web pede para o hardware fazer a corrida e aguarda o resultado
-            velocidade = await controller.realizar_lancamento(tempo_espera_maximo=5.0)
+    
+            velocidade, tempo = await controller.realizar_lancamento(tempo_espera_maximo=5.0)
+            print(f"velocidade: {velocidade}")
+            print(f"tempo: {tempo}")
 
             if velocidade is not None:
-                lancamentos.append(velocidade)
+                lancamentos.append((velocidade, tempo))
                 print(f"Velocidade registrada: {velocidade} m/s")
                 return corsify({"status": "success"})
             else:
@@ -79,16 +81,6 @@ async def buzinar(request):
         return corsify({"status": "success"})
     except Exception as e:
         return corsify({"status": "error", "message": str(e)}, 500)
-
-@app.route('/mudarFrequencia', methods=['POST'])
-async def mudar_freq(request):
-    global frequencia
-    try:
-        data = request.json or {}
-        frequencia = int(data.get("frequencia", 0))
-        return corsify({"status": "success"})
-    except Exception as e:
-        return corsify({"status": "error", "message": str(e)}, 400)
 
 @app.route('/historico', methods=['GET'])
 async def history(request):
