@@ -35,7 +35,7 @@ class Sensores:
         self.timeFinal = 0
 
         # Distância em centímetros
-        self.distanciaPista = 22 + 27 + 25
+        self.distanciaPista = 47 + 38
 
         # ---------------- INTERRUPÇÕES ----------------
         self.sensorInicial.irq(
@@ -74,8 +74,8 @@ class Sensores:
         # cm -> m
         metroDistancia = self.distanciaPista / 100
 
-        #print(f"Tempo final: {self.timeFinal}")
-        #print(f"Tempo inicial: {self.timeInicial}")
+        print(f"Tempo final: {self.timeFinal}")
+        print(f"Tempo inicial: {self.timeInicial}")
 
         deltaTime = time.ticks_diff(self.timeFinal, self.timeInicial) / 1000
 
@@ -105,7 +105,6 @@ class Sensores:
     # =========================================================
     def girarServo(self, angulo):
         duty = int((angulo / 180) * 100 + 25)
-        print(angulo)
         self.servo.duty(duty)
 
     # =========================================================
@@ -138,7 +137,7 @@ class Sensores:
     async def realizar_lancamento(self, tempo_espera_maximo=5.0):
             """
                 Orquestra toda a sequência: contagem, abertura, espera e cálculo.
-                Retorna a velocidade em m/s se houver sucesso, ou None se der timeout.
+                Retorna a velocidade em cm/s se houver sucesso, ou None se der timeout.
             """
             # reseta tudo
             self.girarServo(0)
@@ -161,11 +160,9 @@ class Sensores:
 
             await uasyncio.sleep(1)
             self.mostrarMensagemDisplayLed("GO!")
-
-            self.tocarBuzina(3064, 1000)
-            
             # Abre a catraca
             self.girarServo(90)
+            self.tocarBuzina(3064, 1000)
             
             # Loop de espera (Polling)
             passo_espera = 0.1
@@ -218,11 +215,10 @@ class Sensores:
         
 
 #def main():
-    #sensores = Sensores()
-    
-    #sensores.testarServo()
+ #   sensores = Sensores()
+ #   sensores.testarServo()
 
     #time.sleep(1)
-    #print(uasyncio.run(sensores.realizar_lancamento()))
+  #  print(uasyncio.run(sensores.realizar_lancamento()))
 
 #main()

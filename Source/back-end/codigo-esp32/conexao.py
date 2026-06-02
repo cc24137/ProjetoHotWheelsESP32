@@ -44,6 +44,7 @@ async def options(request, path):
 
 @app.route('/', methods=['GET'])
 async def page(request):
+    controller.buzzer.duty(0)
     return corsify({"status": "online"})
 
 @app.route('/lancar', methods=['POST'])
