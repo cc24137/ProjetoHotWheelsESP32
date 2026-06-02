@@ -24,6 +24,14 @@ Para a realização deste projeto foram utilizados os seguintes softwares:
 
 ## 3. Desenvolvimento do Projeto
 ### Metodologia
+#### Planejamento
+O projeto foi divido nas seguintes etapas:
+- Hardware:
+    1. Montagem dos sensores e outros equipamentos no simulador Wokwi e testes fisicos
+    2. Montagem e testes no esp32
+- Software:
+    1. Desenvolvimento do código para leitura dos sensores e controle do painel de LED
+    2. Desenvolvimento do servidor web para visualização dos dados em tempo real
 #### Controle de Versão
 Durante o desenvolvimento do projeto, utilizamos o controle de versão para gerenciar as alterações no código e garantir a integridade do projeto. Utilizamos o Git como sistema de controle de versão, permitindo-nos acompanhar as mudanças, colaborar com outros membros da equipe e reverter para versões anteriores, se necessário.
 
