@@ -13,6 +13,8 @@ Para a realização deste projeto, foram utilizados os seguintes componentes de 
 - Placa de desenvolvimento ESP32
 - Sensores de posição HW-201
 - Paínel de led 8*8 max7219
+- Buzzer
+- Servo
 ### Software
 Para a realização deste projeto foram utilizados os seguintes softwares:
 - IDE Thonny para desenvolvimento do código em Python
@@ -24,14 +26,19 @@ Para a realização deste projeto foram utilizados os seguintes softwares:
 
 ## 3. Desenvolvimento do Projeto
 ### Metodologia
+A equipe foi divida em duas frentes, uma ficou responsável pelo desenvolvimento da página web juntamente com a montagem da pista e a outra parte ficou responsável pela montagem e testes dos sensores além do código da leitura deles.
+
 #### Planejamento
 O projeto foi divido nas seguintes etapas:
 - Hardware:
-    1. Montagem dos sensores e outros equipamentos no simulador Wokwi e testes fisicos
+    1. Montagem dos sensores e outros equipamentos no simulador Wokwi
     2. Montagem e testes no esp32
+    3. Desenvolvimento do código para leitura dos sensores e controle do painel de LED
 - Software:
-    1. Desenvolvimento do código para leitura dos sensores e controle do painel de LED
-    2. Desenvolvimento do servidor web para visualização dos dados em tempo real
+    1. Desenvolvimento do servidor web para visualização dos dados em tempo real
+    2. Integração da leitura de sensores com a página web
+    3. Montagem da pista
+
 #### Controle de Versão
 Durante o desenvolvimento do projeto, utilizamos o controle de versão para gerenciar as alterações no código e garantir a integridade do projeto. Utilizamos o Git como sistema de controle de versão, permitindo-nos acompanhar as mudanças, colaborar com outros membros da equipe e reverter para versões anteriores, se necessário.
 
@@ -41,19 +48,24 @@ Durante o desenvolvimento do projeto, utilizamos o controle de versão para gere
 
 ### 4.1 Fase de Planejamento
 
-![Planejamento](/imagem1.jpg)
-
+![Planejamento](./images/fasePlanehamento.jpg)
+Equipe organizada pelas duas frentes do projeto
 ### 4.2 Fase de Montagem
 
-![Montagem](/imagem2.jpg)
-
+![Montagem](./images/montagemImg3.jpg)
+Montagem dos sensores HW-201
+![Montagem](./images/montagemImg2.jpg)
+Criação dos desenhos da pista
 ### 4.3 Fase de Testes
 
-![Testes](/imagem3.jpg)
+![Testes](./images/faseTestes.jpg)
+Problema de detecção de velocidade
+![Testes](./images/faseTeste3.jpg)
 
 ### 4.4 Funcionamento Final
 
-![Funcionamento](/imagem4.jpg)
+![Funcionamento](./images/funcFinal2.jpg)
+![Funcionamento](./images/funcFinal.jpg)
 
 ---
 
@@ -62,5 +74,5 @@ Durante o desenvolvimento do projeto, utilizamos o controle de versão para gere
 
 ---
 
-## 7. Referências
+## 7. Referências usadas no trabalho
 Documentação do Max7219: [Documentação Wokwi](https://docs.wokwi.com/) e  [MicroPython Max7219](https://github.com/mcauser/micropython-max7219l)
