@@ -1,4 +1,4 @@
-// ── CONFIGURAÇÕES DE CONEXÃO ──────────────────
+// conexão
 var baseUrl = "http://192.168.43.100";
 let running = false;
 let readings = [];
@@ -7,7 +7,7 @@ let startTime = null;
 let uptimeInt = null;
 let pollInterval = null;
 
-// ── ELEMENTOS DA UI ───────────────────────────
+// HTML
 const startBtn = document.getElementById('startButton');
 const stopBtn = document.getElementById('stopButton');
 const clearBtn = document.getElementById('clearBtn');
@@ -17,7 +17,10 @@ const connLabel = document.getElementById('connLabel');
 const gaugeFill = document.getElementById('gaugeFill');
 const gaugeText = document.getElementById('gaugeText');
 
-// ── LÓGICA DE CONEXÃO ─────────────────────────
+// -----------------------------------
+// conexão
+// -----------------------------------
+
 async function verificarConexao() {
     try {
         const controller = new AbortController();
@@ -51,7 +54,7 @@ function mudarIP() {
     verificarConexao();
 }
 
-// ── COMUNICAÇÃO COM O ESP32 ───────────────────
+// comunicação com o ESP32
 async function dispararAcao(rota) {
     try {
         const resposta = await fetch(`${baseUrl}${rota}`, { method: 'POST' });
@@ -82,8 +85,9 @@ async function buscarDadosDoESP() {
         console.error("Erro ao buscar histórico:", erro);
     }
 }
-
-// ── LÓGICA DO DASHBOARD ───────────────────────
+// -----------------------------------
+// dashboard
+// -----------------------------------
 // MAX SPD
 function updateGauge(speed, max = 5) {
     const pct = Math.min(speed / max, 1);
@@ -143,7 +147,7 @@ function addReading(speed, time) {
     updateUI();
 }
 
-// ── EVENTOS DOS BOTÕES ────────────────────────
+// eventos botões
 startBtn.addEventListener('click', async () => {
     startBtn.textContent = 'Rodando...';
     startBtn.classList.add('running');
@@ -213,7 +217,6 @@ function limparHistorico() {
     document.getElementById('tickTime').textContent = '00:00';
 }
 
-// ── INPUT MASK ────────────────────────────────
 document.getElementById('ipInput').addEventListener('input', function() {
     let v = this.value;
     if (!v.toLowerCase().startsWith('h')) {

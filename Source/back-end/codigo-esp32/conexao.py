@@ -29,6 +29,7 @@ controller = Sensores()
 lancamentos = []
 servo_lock = uasyncio.Lock()
 
+# config cors
 def corsify(data, status=200):
     headers = {
         'Access-Control-Allow-Origin': '*',
@@ -41,6 +42,9 @@ def corsify(data, status=200):
 @app.route('/<path:path>', methods=['OPTIONS'])
 async def options(request, path):
     return corsify({})
+# -----------------------------------
+# ROTAS
+# -----------------------------------
 
 @app.route('/', methods=['GET'])
 async def page(request):
@@ -72,7 +76,7 @@ async def lancar(request):
 
     except Exception as e:
         print("Erro /lancar:", e)
-        controller.girarServo(0) # Proteção em caso de quebra de código
+        controller.girarServo(0)
         return corsify({"status": "error", "message": str(e)}, 500)
 
 @app.route('/buzinar', methods=['POST'])

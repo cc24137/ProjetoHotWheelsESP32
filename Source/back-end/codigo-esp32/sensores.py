@@ -47,9 +47,9 @@ class Sensores:
             handler=self.detectarFinalTrajeto
         )
 
-    # =========================================================
+    # -----------------------------------
     # CALLBACKS E RESETS
-    # =========================================================
+    # -----------------------------------
     def resetarTempos(self):
         self.timeInicial = 0
         self.timeFinal = 0
@@ -64,9 +64,9 @@ class Sensores:
         #print("final")
         self.timeFinal = time.ticks_ms()
 
-    # =========================================================
+    # -----------------------------------
     # VELOCIDADE
-    # =========================================================
+    # -----------------------------------
     def calcularVelocidade(self):
         if self.timeInicial == 0 or self.timeFinal == 0:
             raise Exception("Tempos não definidos!")
@@ -91,25 +91,25 @@ class Sensores:
 
         return velocidade, deltaTime
 
-    # =========================================================
+    # -----------------------------------
     # BUZZER
-    # =========================================================
+    # -----------------------------------
     def tocarBuzina(self, frequency, duration_ms):
         self.buzzer.freq(frequency)
         self.buzzer.duty(512)
         time.sleep_ms(duration_ms)
         self.buzzer.duty(0)
 
-    # =========================================================
+    # -----------------------------------
     # SERVO
-    # =========================================================
+    # -----------------------------------
     def girarServo(self, angulo):
         duty = int((angulo / 180) * 100 + 25)
         self.servo.duty(duty)
 
-    # =========================================================
+    # -----------------------------------
     # DISPLAY
-    # =========================================================
+    # -----------------------------------
     def mostrarMensagemDisplayLed(self, mensagem, scroll=False, brilho=15):
         self.display.brightness(brilho)
         self.display.fill(0)
@@ -122,9 +122,9 @@ class Sensores:
             self.display.text(mensagem, 0, 1)
             self.display.show()
 
-    # =========================================================
+    # -----------------------------------
     # DETECÇÃO DE CARRO
-    # =========================================================
+    # -----------------------------------
     def detectarCarro(self):
         if self.sensorInicial.value() == 0:
             self.tocarBuzina(1024, 100)
@@ -191,9 +191,9 @@ class Sensores:
                 self.mostrarMensagemDisplayLed("ERRO")
                 self.tocarBuzina(500, 1000)
                 return None
-    # =========================================================
+    # -----------------------------------
     # TESTES
-    # =========================================================
+    # -----------------------------------
     def testarBuzina(self):
         print("testando")
         frequencias = [1064, 2064, 3064, 4064]
@@ -213,6 +213,7 @@ class Sensores:
         self.mostrarMensagemDisplayLed("Teste")
         time.sleep(1)
         
+# testes
 
 #def main():
  #   sensores = Sensores()

@@ -72,7 +72,6 @@ body {
   color: var(--light-blue);
 }
 
-/* ── Substitua sua classe .status-dot antiga por esta: ── */
 .status-dot {
   display: flex;
   align-items: center;
@@ -85,9 +84,8 @@ body {
   color: var(--grey);
 }
 
-/* ── Adicione as novas classes abaixo: ── */
 .connection-group {
-  margin-left: auto; /* Empurra todo o bloco (input + status) para a direita */
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 1rem;
