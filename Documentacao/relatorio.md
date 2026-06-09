@@ -1,5 +1,15 @@
 # Relatório do Projeto
 
+## Integrantes
+| Nomes | RA 
+| -------- | ----- 
+|Eduardo Artigiani Lima Tribst      | 24126
+Júlio Pacheco Stein |24137
+Luis Filipe Lima |24139
+Rafael Fazion Baldin Dias | 24150   
+
+---
+
 ## 1. Introdução do Projeto    
 O projeto "Hot Wheels" tem como objetivo desenvolver um sistema de monitoramento do percurso de um carrinho de brinquedo ao longo de uma pista com um desfiladeiro no meio. O sistema ficará responsável por detectar a posição do carrinho, calcular sua velocidade e enviar esses dados para uma pagina web em tempo real, sendo possível analisar através de uma conexão wifi com o eps32.
 
@@ -74,7 +84,4 @@ Problema de detecção de velocidade
 
 Concluímos que o projeto "Hot Wheels" foi um sucesso, alcançando os objetivos propostos de monitorar o percurso do carrinho, calcular sua velocidade e enviar os dados para uma página web em tempo real. A integração dos sensores HW-201, o controle do painel de LED MAX7219 e a implementação do servidor web por meio de conexões wi-fi utilizando o EPS32 foram fundamentais para o sucesso do projeto.
 
----
-
-## 7. Referências usadas no trabalho
-Documentação do Max7219: [Documentação Wokwi](https://docs.wokwi.com/) e  [MicroPython Max7219](https://github.com/mcauser/micropython-max7219l)
+Para visualizar o resultado do projeto fizemos um vídeo no youtube explicando e demonstrando o projeto que pode ser acessado com o seguinte link: [youtu.be/yDPGKF5kBNU](https://youtu.be/yDPGKF5kBNU)
