@@ -49,11 +49,11 @@ Durante o desenvolvimento do projeto, utilizamos o controle de versão para gere
 ### 4.1 Fase de Planejamento
 
 ![Planejamento](./images/fasePlanehamento.jpg)
-Equipe organizada pelas duas frentes do projeto
+Equipe organizada em duas frentes do projeto
 ### 4.2 Fase de Montagem
 
 ![Montagem](./images/montagemImg3.jpg)
-Montagem dos sensores HW-201
+Montagem dos sensores HW-201 juntamente com o servo
 ![Montagem](./images/montagemImg2.jpg)
 Criação dos desenhos da pista
 ### 4.3 Fase de Testes
@@ -71,6 +71,8 @@ Problema de detecção de velocidade
 
 
 ## 6. Conclusão
+
+Concluímos que o projeto "Hot Wheels" foi um sucesso, alcançando os objetivos propostos de monitorar o percurso do carrinho, calcular sua velocidade e enviar os dados para uma página web em tempo real. A integração dos sensores HW-201, o controle do painel de LED MAX7219 e a implementação do servidor web por meio de conexões wi-fi utilizando o EPS32 foram fundamentais para o sucesso do projeto.
 
 ---
 
