@@ -1,12 +1,45 @@
 import time
 import uasyncio
-from machine import PWM, Pin, SoftSPI
-from max7129 import Max7219
+import neopixel
+from machine import PWM, Pin
 
 
 class Sensores:
 
-    def __init__(self):
+    # ---------------- FONTE MICRO 3x4 ----------------
+    FONTE_3x4 = {
+        '0': [0b111, 0b101, 0b101, 0b111],
+        '1': [0b010, 0b110, 0b010, 0b111],
+        '2': [0b111, 0b011, 0b100, 0b111],
+        '3': [0b111, 0b011, 0b011, 0b111],
+        '4': [0b101, 0b101, 0b111, 0b001],
+        '5': [0b111, 0b100, 0b011, 0b111],
+        '6': [0b111, 0b100, 0b111, 0b111],
+        '7': [0b111, 0b001, 0b010, 0b010],
+        '8': [0b111, 0b111, 0b101, 0b111],
+        '9': [0b111, 0b101, 0b111, 0b001],
+        'A': [0b010, 0b101, 0b111, 0b101],
+        'B': [0b110, 0b110, 0b101, 0b110],
+        'C': [0b011, 0b100, 0b100, 0b011],
+        'D': [0b110, 0b101, 0b101, 0b110],
+        'E': [0b111, 0b110, 0b100, 0b111],
+        'F': [0b111, 0b110, 0b100, 0b100],
+        'G': [0b011, 0b100, 0b101, 0b011],
+        'H': [0b101, 0b101, 0b111, 0b101],
+        'I': [0b111, 0b010, 0b010, 0b111],
+        'L': [0b100, 0b100, 0b100, 0b111],
+        'O': [0b111, 0b101, 0b101, 0b111],
+        'P': [0b110, 0b101, 0b110, 0b100],
+        'R': [0b110, 0b101, 0b110, 0b101],
+        'S': [0b011, 0b100, 0b001, 0b110],
+        'T': [0b111, 0b010, 0b010, 0b010],
+        'U': [0b101, 0b101, 0b101, 0b111],
+        '!': [0b010, 0b010, 0b000, 0b010],
+        '.': [0b000, 0b000, 0b000, 0b010],
+        ' ': [0b000, 0b000, 0b000, 0b000],
+    }
+
+    def __init__(self, pin_neopixel=4):
         # ---------------- BUZZER ----------------
         self.buzzer = PWM(Pin(25))
         self.buzzer.duty(0)
@@ -14,83 +47,74 @@ class Sensores:
         # ---------------- SERVO ----------------
         self.servo = PWM(Pin(23), freq=50)
 
-        # ---------------- DISPLAY ----------------
-        spi = SoftSPI(
-            baudrate=10000000,
-            polarity=1,
-            phase=0,
-            sck=Pin(18),
-            mosi=Pin(32),
-            miso=Pin(4)
-        )
-        cs = Pin(5, Pin.OUT)
-        self.display = Max7219(32, 8, spi, cs)
+        # ---------------- DISPLAY WS2812B (NEOPIXEL) ----------------
+        self.num_leds = 48  # 3 matrizes 4x4 = 12 colunas x 4 linhas
+        self.pin_display = Pin(pin_neopixel, Pin.OUT)
+        self.np = neopixel.NeoPixel(self.pin_display, self.num_leds)
+        self.limparDisplay()
 
         # ---------------- SENSORES ----------------
-        self.sensorInicial = Pin(12, Pin.IN)
-        self.sensorFinal = Pin(13, Pin.IN)
+        self.sensor = Pin(12, Pin.IN)
 
         # ---------------- TEMPOS ----------------
         self.timeInicial = 0
         self.timeFinal = 0
 
         # Distância em centímetros
-        self.distanciaPista = 47 + 38
+        self.distanciaPista = 1.17
 
         # ---------------- INTERRUPÇÕES ----------------
-        self.sensorInicial.irq(
+        self.sensor.irq(
             trigger=Pin.IRQ_FALLING,
-            handler=self.detectarInicioTrajeto
+            handler=self.detectarFimTrajeto
         )
-        self.sensorFinal.irq(
-            trigger=Pin.IRQ_FALLING,
-            handler=self.detectarFinalTrajeto
-        )
+
+    # -----------------------------------
+    # MÉTODOS AUXILIARES DO DISPLAY WS2812B
+    # -----------------------------------
+    def xy_para_index(self, x, y):
+        """Converte coordenada (X, Y) do painel 12x4 para a posição no cabo do NeoPixel."""
+        x_invertido = 11 - x 
+        painel = x_invertido // 4 
+        x_local = x_invertido % 4 
+        return (painel * 16) + (y * 4) + x_local
+
+    def limparDisplay(self):
+        """Apaga todos os LEDs."""
+        for i in range(self.num_leds):
+            self.np[i] = (0, 0, 0)
+        self.np.write()
+
+    def desenharTexto(self, texto, pos_x=0, cor=(15, 15, 15)):
+        """Desenha uma string de texto na posição X informada."""
+        self.limparDisplay()
+
+        cursor_x = pos_x
+        for char in str(texto).upper():
+            bitmap = self.FONTE_3x4.get(char, self.FONTE_3x4[' '])
+            for y in range(4):
+                linha = bitmap[y]
+                for col in range(3):
+                    if (linha >> (2 - col)) & 1:
+                        x = cursor_x + col
+                        if 0 <= x < 12:  # Desenha apenas se estiver na área visível 12x4
+                            idx = self.xy_para_index(x, y)
+                            self.np[idx] = cor
+            cursor_x += 4  # 3 pixels da letra + 1 de espaço
+
+        self.np.write()
 
     # -----------------------------------
     # CALLBACKS E RESETS
     # -----------------------------------
     def resetarTempos(self):
-        self.timeInicial = 0
-        self.timeFinal = 0
+        self.tempoInicial = 0
 
-    def detectarInicioTrajeto(self, pin):
-        #print("inicio")
-        self.timeInicial = time.ticks_ms()
-        if self.timeFinal != 0:
-            self.timeFinal = 0
-
-    def detectarFinalTrajeto(self, pin):
-        #print("final")
-        self.timeFinal = time.ticks_ms()
-
-    # -----------------------------------
-    # VELOCIDADE
-    # -----------------------------------
-    def calcularVelocidade(self):
-        if self.timeInicial == 0 or self.timeFinal == 0:
-            raise Exception("Tempos não definidos!")
-
-        # cm -> m
-        metroDistancia = self.distanciaPista / 100
-
-        print(f"Tempo final: {self.timeFinal}")
-        print(f"Tempo inicial: {self.timeInicial}")
-
-        deltaTime = time.ticks_diff(self.timeFinal, self.timeInicial) / 1000
-
-        if deltaTime <= 0:
-            raise Exception("Delta de tempo inválido!")
-
-        velocidade = metroDistancia / deltaTime
-
-        self.timeInicial = 0
-        self.timeFinal = 0
-
-        self.tocarBuzina(1064, 1000)
-
-        return velocidade, deltaTime
-
+    def detectarFimTrajeto(self, pin):
+        # print("inicio")
+#        self.timeFinal = time.ticks_ms()
+        self.resetarTempos()
+        
     # -----------------------------------
     # BUZZER
     # -----------------------------------
@@ -106,120 +130,148 @@ class Sensores:
     def girarServo(self, angulo):
         duty = int((angulo / 180) * 100 + 25)
         self.servo.duty(duty)
-
+        
+    # DISPLAY (INTERFACE DE MENSAGENS)
     # -----------------------------------
-    # DISPLAY
-    # -----------------------------------
-    def mostrarMensagemDisplayLed(self, mensagem, scroll=False, brilho=15):
-        self.display.brightness(brilho)
-        self.display.fill(0)
-        self.display.show()
+    def mostrarMensagemDisplayLed(self, mensagem, scroll=False, cor=(15, 15, 15), velocidade=0.08):
+        """
+        Exibe a mensagem no display WS2812B.
+        - Se scroll=True: Desliza o texto.
+        - Se scroll=False: Centraliza textos curtos (1 ou 2 caracteres) ou desenha direto.
+        """
+        msg_str = str(mensagem)
 
         if scroll:
-            self.display.scroll_text(mensagem)
+            largura_total = len(msg_str) * 4
+            for x in range(12, -largura_total, -1):
+                self.desenharTexto(msg_str, pos_x=x, cor=cor)
+                time.sleep(velocidade)
         else:
-            self.display.fill(0)
-            self.display.text(mensagem, 0, 1)
-            self.display.show()
+            # Centralização automática para telas 12x4
+            if len(msg_str) == 1:
+                offset_x = 4  # Centraliza 1 número/letra no meio
+            elif len(msg_str) == 2:
+                offset_x = 2  # Centraliza 2 números/letras
+            else:
+                offset_x = 0  # 3 caracteres usam toda a largura (12 cols)
+
+            self.desenharTexto(msg_str, pos_x=offset_x, cor=cor)
 
     # -----------------------------------
     # DETECÇÃO DE CARRO
     # -----------------------------------
     def detectarCarro(self):
-        if self.sensorInicial.value() == 0:
+        if self.sensor.value() == 0:
             self.tocarBuzina(1024, 100)
             return True
         return False
 
     def corridaFinalizada(self):
-        return self.timeInicial != 0 and self.timeFinal != 0
+        return self.tempoInicial == 0
+    
+    def calcularVelocidade(self, tempo):
+        return self.distanciaPista / tempo
 
     async def realizar_lancamento(self, tempo_espera_maximo=5.0):
-            """
-                Orquestra toda a sequência: contagem, abertura, espera e cálculo.
-                Retorna a velocidade em cm/s se houver sucesso, ou None se der timeout.
-            """
-            # reseta tudo
-            self.girarServo(0)
-            self.buzzer.duty(0)
-            self.resetarTempos()
-    
-            # Contagem regressiva
-            self.mostrarMensagemDisplayLed("3")
-            self.tocarBuzina(2064, 500)
+        """
+        Orquestra toda a sequência: contagem, abertura, espera e cálculo.
+        Retorna a velocidade em m/s se houver sucesso, ou None se der timeout.
+        """
+        
+        # reseta tudo
+        self.girarServo(0)
+        self.buzzer.duty(0)
 
-            await uasyncio.sleep(1)
+        # Contagem regressiva (com cores: Vermelho -> Amarelo -> Verde)
+        self.mostrarMensagemDisplayLed("3", cor=(20, 0, 0))
+        self.tocarBuzina(2064, 500)
 
-            self.mostrarMensagemDisplayLed("2")
-            self.tocarBuzina(2064, 500)
+        await uasyncio.sleep(1)
 
-            await uasyncio.sleep(1)
+        self.mostrarMensagemDisplayLed("2", cor=(20, 10, 0))
+        self.tocarBuzina(2064, 500)
 
-            self.mostrarMensagemDisplayLed("1")
-            self.tocarBuzina(2064, 500)
+        await uasyncio.sleep(1)
 
-            await uasyncio.sleep(1)
-            self.mostrarMensagemDisplayLed("GO!")
-            # Abre a catraca
-            self.girarServo(90)
-            self.tocarBuzina(3064, 1000)
-            
-            # Loop de espera (Polling)
-            passo_espera = 0.1
-            tempo_decorrido = 0
-            sucesso = False
-    
-            while tempo_decorrido < tempo_espera_maximo:
-                if self.corridaFinalizada():
-                    sucesso = True
-                    break 
-                await uasyncio.sleep(passo_espera)
-                tempo_decorrido += passo_espera
-    
-            # Fecha a catraca
-            self.girarServo(0)
-    
-            # Processa o resultado
-            if sucesso:
-                vel_ms, tempo = self.calcularVelocidade()
-                vel_arredondado = round(vel_ms, 2)
-                
-                self.mostrarMensagemDisplayLed(f"{vel_arredondado}")
-                self.tocarBuzina(3000, 200) 
-                return vel_arredondado, tempo
-            else:
-                self.mostrarMensagemDisplayLed("ERRO")
-                self.tocarBuzina(500, 1000)
-                return None
+        self.mostrarMensagemDisplayLed("1", cor=(0, 20, 0))
+        self.tocarBuzina(2064, 500)
+
+        await uasyncio.sleep(1)
+        self.mostrarMensagemDisplayLed("GO!", cor=(231, 82, 200))
+       
+        # Abre a catraca
+        self.girarServo(90)
+        self.tocarBuzina(3064, 1000)
+        
+        self.resetarTempos()
+        self.tempoInicial = time.ticks_ms()
+        print(f"tempo inicial no início: {self.tempoInicial}")
+        
+        # Loop de espera (Polling)
+        passo_espera = 0.1
+        tempo_decorrido = 0
+        sucesso = False
+
+        while tempo_decorrido < tempo_espera_maximo:
+            print(f"tempo decorrido dentro do loop: {tempo_decorrido}")
+            if self.corridaFinalizada():
+                sucesso = True
+                break
+            await uasyncio.sleep(passo_espera)
+            tempo_decorrido += passo_espera
+
+        # Fecha a catraca
+        self.girarServo(0)
+
+        # Processa o resultado
+        print(f"tempo decorrido depois do loop: {tempo_decorrido}")
+        print(f"sucesso: {sucesso}")
+        if sucesso:
+            vel_ms = self.calcularVelocidade(tempo_decorrido)
+            print(vel_ms)
+            vel_arredondado = round(vel_ms, 2)
+            print(vel_arredondado)
+            # Exibe a velocidade em azul
+            self.mostrarMensagemDisplayLed(f"{vel_arredondado}", scroll=True, cor=(0, 15, 25))
+            self.tocarBuzina(3000, 200)
+            return vel_arredondado, tempo_decorrido
+        else:
+            # Exibe ERRO em vermelho deslizando ou fixo
+            self.mostrarMensagemDisplayLed("ERRO", cor=(25, 0, 0))
+            self.tocarBuzina(500, 1000)
+            return None
+
     # -----------------------------------
     # TESTES
     # -----------------------------------
     def testarBuzina(self):
-        print("testando")
+        print("testando buzina")
         frequencias = [1064, 2064, 3064, 4064]
         for freq in frequencias:
             self.tocarBuzina(freq, 1000)
 
     def testarServo(self):
-        print("teste")
+        print("testando servo")
         self.girarServo(90)
         time.sleep(1)
         self.girarServo(0)
         time.sleep(1)
 
     def testarDisplay(self):
-        self.mostrarMensagemDisplayLed("Teste", True)
+        print("testando display")
+        self.mostrarMensagemDisplayLed("TESTE", scroll=True, cor=(10, 10, 20))
         time.sleep(1)
-        self.mostrarMensagemDisplayLed("Teste")
+        self.mostrarMensagemDisplayLed("123", cor=(0, 20, 0))
         time.sleep(1)
-        
-# testes
 
-#def main():
- #   sensores = Sensores()
- #   sensores.testarServo()
 
-    #time.sleep(1)
-  #  print(uasyncio.run(sensores.realizar_lancamento()))
+# --- MAIN ---
+def main():
+    sensores = Sensores()
+    while True:
+        print('iniccio')
+        print(uasyncio.run(sensores.realizar_lancamento()))
+        time.sleep(8)
+
 
 #main()
